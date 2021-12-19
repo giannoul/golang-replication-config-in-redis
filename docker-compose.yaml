@@ -1,0 +1,65 @@
+version: '3.6'
+
+networks:
+    redis-topology: {}
+
+volumes:
+  shared-config:
+
+services:
+  redis-1:
+    container_name: redis-1
+    image: redis:5-alpine
+    volumes:
+      - ./scripts:/shared/
+    command: /bin/sh -c "redis-server --daemonize yes && sleep 10 && echo 'SLAVEOF redis-2 6379' | redis-cli && sleep 90000"
+    networks:
+      - redis-topology
+    restart:
+      always
+
+  redis-2:
+    container_name: redis-2
+    image: redis:5-alpine
+    networks:
+      - redis-topology
+    restart:
+      always
+
+  redis-3:
+    container_name: redis-3
+    image: redis:5-alpine
+    volumes:
+      - ./scripts:/shared/
+    command: /bin/sh -c "redis-server --daemonize yes && sleep 10 && echo 'SLAVEOF redis-2 6379' | redis-cli && sleep 90000"
+    networks:
+      - redis-topology
+    restart:
+      always
+
+  golang:
+    container_name: golang-container
+    image: golang-redis-replication-config-production
+    volumes:
+      - ./configurations:/etc/redis/
+      - shared-config:/shared
+    environment:
+      - REDISPEERS=redis-1:6379,redis-2:6379,redis-3:6379
+    entrypoint: /bin/sh -c "master-finder && cp /etc/redis/redis.conf /shared"
+    networks:
+      - redis-topology
+    restart:
+      on-failure
+
+  redis-4:
+    container_name: redis-4
+    image: redis:5-alpine
+    volumes:
+      - shared-config:/etc/redis/
+    command: /bin/sh -c "redis-server /etc/redis/redis.conf"
+    networks:
+      - redis-topology
+    depends_on:
+      - golang
+    restart:
+      always
