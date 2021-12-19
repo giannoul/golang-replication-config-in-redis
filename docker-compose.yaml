@@ -12,7 +12,7 @@ services:
     image: redis:5-alpine
     volumes:
       - ./scripts:/shared/
-    command: /bin/sh -c "redis-server --daemonize yes && sleep 10 && echo 'SLAVEOF redis-2 6379' | redis-cli && sleep 90000"
+    command: /bin/sh -c "sleep 10 && redis-server --daemonize yes && sleep 10 && echo 'SLAVEOF redis-2 6379' | redis-cli && sleep 90000"
     networks:
       - redis-topology
     restart:
@@ -31,7 +31,7 @@ services:
     image: redis:5-alpine
     volumes:
       - ./scripts:/shared/
-    command: /bin/sh -c "redis-server --daemonize yes && sleep 10 && echo 'SLAVEOF redis-2 6379' | redis-cli && sleep 90000"
+    command: /bin/sh -c "sleep 10 && redis-server --daemonize yes && sleep 10 && echo 'SLAVEOF redis-2 6379' | redis-cli && sleep 90000"
     networks:
       - redis-topology
     restart:

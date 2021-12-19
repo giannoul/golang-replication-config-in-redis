@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"os"
 	"log"
+	"io/ioutil"
 	"github.com/giannoul/golang-replication-config-in-redis/pkg/redisinfo"
 )
 
@@ -67,9 +68,8 @@ func main() {
 	}
 
 	setMasterInRedisConfigFile(mhost, mport)
-	log.Printf("%#v",res)
-	
-
+	setMasterInSentinelConfigFile(mhost, mport)
+	log.Println("???????: ")
 	
 }
 
@@ -92,8 +92,18 @@ func checkIfHostIsMaster(host string, port int) (r bool) {
 
 func setMasterInRedisConfigFile(host string, port int) {
 	line := fmt.Sprintf("replicaof %s %d", host, port)
-	path := "/etc/redis/redis.conf"
-	appendToFile(path, line)
+	sourcePath := getEnv("CONF_SRC_PATH", "/etc/redis/vanilla-redis.conf")
+	destinationPath := getEnv("CONF_DST_PATH", "/etc/redis/redis.conf")
+	copyFile(sourcePath, destinationPath)
+	appendToFile(destinationPath, line)
+}
+
+func setMasterInSentinelConfigFile(host string, port int) {
+	line := fmt.Sprintf("sentinel monitor mymaster %s %d 2", host, port)
+	sourcePath := getEnv("CONF_SRC_PATH", "/etc/redis/vanilla-sentinel.conf")
+	destinationPath := getEnv("CONF_DST_PATH", "/etc/redis/sentinel.conf")
+	copyFile(sourcePath, destinationPath)
+	appendToFile(destinationPath, line)
 }
 
 func appendToFile(path string, line string) {
@@ -102,7 +112,30 @@ func appendToFile(path string, line string) {
 		log.Println(err)
 	}
 	defer f.Close()
-	if _, err := f.WriteString(line+"\n"); err != nil {
+	log.Println(line)
+	if _, err := f.WriteString("\n"+line+"\n"); err != nil {
 		log.Println(err)
 	}
+}
+
+func copyFile(src string, dest string) {
+	input, err := ioutil.ReadFile(src)
+	if err != nil {
+		log.Println(err)
+			return
+	}
+
+	err = ioutil.WriteFile(dest, input, 0644)
+	if err != nil {
+		log.Println("Error creating", dest)
+		log.Fatal(err)
+		return
+	}
+}
+
+func getEnv(key, fallback string) string {
+    if value, ok := os.LookupEnv(key); ok {
+        return value
+    }
+    return fallback
 }
