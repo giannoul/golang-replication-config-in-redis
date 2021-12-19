@@ -55,7 +55,7 @@ build-golang-production:
 .PHONY: build-golang-binary
 build-golang-binary: build-golang-production
 	docker run --rm --name golang-builder -v $(PWD)/dist:/dist --entrypoint /bin/bash $(IMAGE_NAME)-production \
-	-c "CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o /dist/master-finder cmd/main.go"
+	-c "go build -o /dist/master-finder cmd/main.go"
 	sudo chown $(UID):$(GID) ./dist/master-finder
 
 
