@@ -58,6 +58,8 @@ func main() {
 			log.Println("I should be the master! My details are: ", master)
 			mhost, mport = ipPortPairToParts(master)
 			copyFile(getEnv("REDIS_CONF_SRC_PATH", "/etc/redis/vanilla-redis.conf"), getEnv("REDIS_CONF_DST_PATH", "/etc/redis/redis.conf")) 
+		}else{
+			os.Exit(1)
 		}
     case 1:
         mhost, mport = ipPortPairToParts(master)
