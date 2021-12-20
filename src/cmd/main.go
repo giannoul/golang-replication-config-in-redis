@@ -88,16 +88,16 @@ func checkIfHostIsMaster(host string, port int) (r bool) {
 
 func setMasterInRedisConfigFile(host string, port int) {
 	line := fmt.Sprintf("replicaof %s %d", host, port)
-	sourcePath := getEnv("CONF_SRC_PATH", "/etc/redis/vanilla-redis.conf")
-	destinationPath := getEnv("CONF_DST_PATH", "/etc/redis/redis.conf")
+	sourcePath := getEnv("REDIS_CONF_SRC_PATH", "/etc/redis/vanilla-redis.conf")
+	destinationPath := getEnv("REDIS_CONF_DST_PATH", "/etc/redis/redis.conf")
 	copyFile(sourcePath, destinationPath)
 	appendToFile(destinationPath, line)
 }
 
 func setMasterInSentinelConfigFile(host string, port int) {
 	line := fmt.Sprintf("sentinel monitor mymaster %s %d 2", host, port)
-	sourcePath := getEnv("CONF_SRC_PATH", "/etc/redis/vanilla-sentinel.conf")
-	destinationPath := getEnv("CONF_DST_PATH", "/etc/redis/sentinel.conf")
+	sourcePath := getEnv("SENTINEL_CONF_SRC_PATH", "/etc/redis/vanilla-sentinel.conf")
+	destinationPath := getEnv("SENTINEL_CONF_DST_PATH", "/etc/redis/sentinel.conf")
 	copyFile(sourcePath, destinationPath)
 	appendToFile(destinationPath, line)
 }
