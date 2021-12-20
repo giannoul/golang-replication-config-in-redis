@@ -60,12 +60,12 @@ func main() {
 		}
     case 1:
         mhost, mport = ipPortPairToParts(master)
+		setMasterInRedisConfigFile(mhost, mport)
     default:
         log.Fatal("I shouldn't even get here!")
 		os.Exit(1)
     }
-
-	setMasterInRedisConfigFile(mhost, mport)
+	
 	setMasterInSentinelConfigFile(mhost, mport)
 }
 
