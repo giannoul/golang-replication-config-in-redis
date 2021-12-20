@@ -5,9 +5,7 @@ import (
 	"context"
 	"strings"
 	"strconv"
-
 	"os"
-	
 	"log"
 	"io/ioutil"
 	"github.com/giannoul/golang-replication-config-in-redis/pkg/redisinfo"
@@ -28,12 +26,7 @@ func main() {
 	for i := range peers {
 		chans = append(chans, make(chan bool))
 		res = append(res, false)
-		parts := strings.Split(peers[i],":")
-		host := parts[0]
-		port,err := strconv.Atoi(parts[1])
-		if err != nil {
-			log.Println("Error: ",err)
-		}
+		host, port := ipPortPairToParts(peers[i])
 		go worker(host,port,chans[i])
 		
 	}
@@ -42,7 +35,7 @@ func main() {
 		res[i] = <-chans[i]
 	}
 
-	master := os.Getenv("HERITAGE")
+	master := getEnv("EXPOSING_SVC","")
 	masterCount := 0
 	for i := range peers {
 		if res[i] {
@@ -57,22 +50,23 @@ func main() {
 		os.Exit(1)
 	}
 
-	if masterCount == 0 && os.Getenv("HERITAGE") == "master" {
-		log.Println("I should be the master!")
-		os.Exit(0)
-	}
+	mhost, mport := "", 0
 
-	parts := strings.Split(master,":")
-	mhost := parts[0]
-	mport,err := strconv.Atoi(parts[1])
-	if err != nil {
-		log.Println("Error: ",err)
-	}
+	switch masterCount {
+    case 0:
+        if os.Getenv("HERITAGE") == "master" {
+			log.Println("I should be the master! My details are: ", master)
+			mhost, mport = ipPortPairToParts(master)
+		}
+    case 1:
+        mhost, mport = ipPortPairToParts(master)
+    default:
+        log.Fatal("I shouldn't even get here!")
+		os.Exit(1)
+    }
 
 	setMasterInRedisConfigFile(mhost, mport)
 	setMasterInSentinelConfigFile(mhost, mport)
-	log.Println("???????: ")
-	
 }
 
 func worker(host string, port int, finished chan bool) {
@@ -140,4 +134,14 @@ func getEnv(key, fallback string) string {
         return value
     }
     return fallback
+}
+
+func ipPortPairToParts(pair string) (host string, port int) {
+	parts := strings.Split(pair,":")
+	host = parts[0]
+	port,err := strconv.Atoi(parts[1])
+	if err != nil {
+		log.Fatal("Error: ",err)
+	}
+	return host, port
 }
