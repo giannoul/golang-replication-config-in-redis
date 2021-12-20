@@ -104,7 +104,7 @@ func setMasterInSentinelConfigFile(host string, port int) {
 }
 
 func appendToFile(path string, line string) {
-	f, err := os.OpenFile(path,os.O_RDWR|os.O_APPEND, 0644)
+	f, err := os.OpenFile(path,os.O_RDWR|os.O_APPEND, 0666)
 	if err != nil {
 		log.Println(err)
 	}
