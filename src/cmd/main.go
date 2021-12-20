@@ -57,6 +57,7 @@ func main() {
         if os.Getenv("HERITAGE") == "master" {
 			log.Println("I should be the master! My details are: ", master)
 			mhost, mport = ipPortPairToParts(master)
+			copyFile(getEnv("REDIS_CONF_SRC_PATH", "/etc/redis/vanilla-redis.conf"), getEnv("REDIS_CONF_DST_PATH", "/etc/redis/redis.conf")) 
 		}
     case 1:
         mhost, mport = ipPortPairToParts(master)
@@ -121,7 +122,7 @@ func copyFile(src string, dest string) {
 			return
 	}
 
-	err = ioutil.WriteFile(dest, input, 0644)
+	err = ioutil.WriteFile(dest, input, 0666)
 	if err != nil {
 		log.Println("Error creating", dest)
 		log.Fatal(err)
